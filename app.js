@@ -34,9 +34,8 @@ const TRANSLATIONS = {
     seated: "seated",
     standing: "standing",
     noPhoto: "No photo available",
-    autoRefreshed: "Auto-refreshed {count} vehicles. Data timestamp: {generatedAt}.",
-    refreshNow: "Refreshing data...",
-    showing: "Showing {count} vehicles. Data timestamp: {generatedAt}.",
+    autoRefreshed: "Auto-refreshed {count} vehicles from the latest published DPO API snapshot.",
+    showing: "Showing {count} vehicles from the latest published DPO API snapshot.",
     autoRefreshFailed:
       "Auto-refresh could not load the latest published data. The map will keep showing the last successful snapshot.",
     loadFailed:
@@ -95,9 +94,8 @@ const TRANSLATIONS = {
     seated: "sedících",
     standing: "stojících",
     noPhoto: "Fotografie není k dispozici",
-    autoRefreshed: "Automaticky obnoveno: {count} vozidel. Čas dat: {generatedAt}.",
-    refreshNow: "Obnovuji data...",
-    showing: "Zobrazeno {count} vozidel. Čas dat: {generatedAt}.",
+    autoRefreshed: "Automaticky obnoveno: {count} vozidel z posledního snapshotu DPO API.",
+    showing: "Zobrazeno {count} vozidel z posledního snapshotu DPO API.",
     autoRefreshFailed:
       "Automatická obnova nemohla načíst nejnovější data. Mapa ponechá poslední úspěšná data.",
     loadFailed:
@@ -144,11 +142,9 @@ const state = {
   markers: new Map(),
   selectedId: null,
   lastGeneratedAt: null,
-  lastFetchedAt: null,
   language: "en",
   plannerPathLine: null,
   stopCoordinates: new Map(),
-  refreshInFlight: false,
 };
 
 const elements = {
@@ -201,7 +197,7 @@ function applyLanguageToStaticText() {
   });
 
   elements.searchInput.placeholder = t("searchPlaceholder");
-  elements.lastUpdated.textContent = state.lastFetchedAt ? formatDate(state.lastFetchedAt) : t("waiting");
+  elements.lastUpdated.textContent = state.lastGeneratedAt ? formatDate(state.lastGeneratedAt) : t("waiting");
 }
 
 function setLanguage(language) {
@@ -632,8 +628,8 @@ function applyPayload(payload, { isBackgroundRefresh = false } = {}) {
   elements.lastUpdated.textContent = formatDate(state.lastFetchedAt);
   const generatedAtLabel = formatDate(payload.generatedAt);
   elements.statusBanner.textContent = isBackgroundRefresh
-    ? t("autoRefreshed", { count: payload.count ?? state.vehicles.length, generatedAt: generatedAtLabel })
-    : t("showing", { count: payload.count ?? state.vehicles.length, generatedAt: generatedAtLabel });
+    ? t("autoRefreshed", { count: payload.count ?? state.vehicles.length })
+    : t("showing", { count: payload.count ?? state.vehicles.length });
 
   buildLegend(payload.typeCounts || {});
   populateTypeFilter(payload.typeCounts || {});
