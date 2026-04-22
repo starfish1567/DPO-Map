@@ -26,20 +26,32 @@
     <div class="page-shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">Open-source GitHub Pages app</p>
-          <h1>DPO Live Vehicle Map</h1>
-          <p class="hero-copy">
+          <div class="top-row">
+            <p class="eyebrow" data-i18n="eyebrow">Open-source GitHub Pages app</p>
+            <label class="lang-switcher" for="language-select">
+              <span data-i18n="languageLabel">Language</span>
+              <select id="language-select" class="select-input compact-select">
+                <option value="en">English</option>
+                <option value="cs">Čeština</option>
+              </select>
+            </label>
+          </div>
+          <h1 data-i18n="heroTitle">DPO Live Vehicle Map</h1>
+          <p class="hero-copy" data-i18n="heroCopy">
             Explore live DPO vehicles on an interactive map. Click any bus, tram,
             or trolleybus to see its route, timing, vehicle details, and photo.
+          </p>
+          <p class="legal-note" data-i18n="legalNote">
+            Data source: DPO API endpoint (via the refresh script in this repository). Check DPO API terms before public/commercial use.
           </p>
         </div>
         <div class="hero-stats" id="hero-stats">
           <div class="stat-card">
-            <span class="stat-label">Live vehicles</span>
+            <span class="stat-label" data-i18n="liveVehicles">Live vehicles</span>
             <strong id="vehicle-count">0</strong>
           </div>
           <div class="stat-card">
-            <span class="stat-label">Last refresh</span>
+            <span class="stat-label" data-i18n="lastRefresh">Last refresh</span>
             <strong id="last-updated">Waiting</strong>
           </div>
         </div>
@@ -48,7 +60,7 @@
       <main class="layout">
         <aside class="sidebar">
           <section class="panel controls-panel">
-            <label class="field-label" for="search-input">Find a vehicle</label>
+            <label class="field-label" for="search-input" data-i18n="findVehicle">Find a vehicle</label>
             <input
               id="search-input"
               class="search-input"
@@ -57,7 +69,7 @@
             />
 
             <div class="filter-row">
-              <label class="field-label" for="type-filter">Vehicle type</label>
+              <label class="field-label" for="type-filter" data-i18n="vehicleType">Vehicle type</label>
               <select id="type-filter" class="select-input">
                 <option value="all">All</option>
               </select>
@@ -66,9 +78,23 @@
             <div class="legend" id="legend"></div>
           </section>
 
+          <section class="panel planner-panel">
+            <div class="panel-heading">
+              <h2 data-i18n="tripPlanner">Trip planner</h2>
+            </div>
+            <label class="field-label" for="start-stop" data-i18n="fromStop">From</label>
+            <select id="start-stop" class="select-input"></select>
+
+            <label class="field-label planner-label" for="end-stop" data-i18n="toStop">To</label>
+            <select id="end-stop" class="select-input"></select>
+
+            <button id="build-path" class="planner-btn" type="button" data-i18n="buildPath">Show path</button>
+            <div id="planner-result" class="planner-result" aria-live="polite"></div>
+          </section>
+
           <section class="panel list-panel">
             <div class="panel-heading">
-              <h2>Vehicles</h2>
+              <h2 data-i18n="vehicles">Vehicles</h2>
               <span id="list-count">0 shown</span>
             </div>
             <div id="vehicle-list" class="vehicle-list" aria-live="polite"></div>
@@ -82,7 +108,7 @@
           </div>
 
           <section class="panel details-panel" id="details-panel">
-            <div class="details-empty" id="details-empty">
+            <div class="details-empty" id="details-empty" data-i18n="detailsEmpty">
               Select a vehicle on the map or in the list to see details and photo.
             </div>
             <article class="details-card hidden" id="details-card">
@@ -96,35 +122,35 @@
 
                 <dl class="detail-grid">
                   <div>
-                    <dt>Vehicle number</dt>
+                    <dt data-i18n="vehicleNumber">Vehicle number</dt>
                     <dd id="detail-number">-</dd>
                   </div>
                   <div>
-                    <dt>Status</dt>
+                    <dt data-i18n="status">Status</dt>
                     <dd id="detail-status">-</dd>
                   </div>
                   <div>
-                    <dt>Last stop</dt>
+                    <dt data-i18n="lastStop">Last stop</dt>
                     <dd id="detail-last-stop">-</dd>
                   </div>
                   <div>
-                    <dt>Destination</dt>
+                    <dt data-i18n="destination">Destination</dt>
                     <dd id="detail-destination">-</dd>
                   </div>
                   <div>
-                    <dt>Model</dt>
+                    <dt data-i18n="model">Model</dt>
                     <dd id="detail-model">-</dd>
                   </div>
                   <div>
-                    <dt>Engine</dt>
+                    <dt data-i18n="engine">Engine</dt>
                     <dd id="detail-engine">-</dd>
                   </div>
                   <div>
-                    <dt>Capacity</dt>
+                    <dt data-i18n="capacity">Capacity</dt>
                     <dd id="detail-capacity">-</dd>
                   </div>
                   <div>
-                    <dt>Accessibility</dt>
+                    <dt data-i18n="accessibility">Accessibility</dt>
                     <dd id="detail-access">-</dd>
                   </div>
                 </dl>
@@ -147,4 +173,4 @@
     ></script>
     <script src="./app.js" defer></script>
   </body>
-  </html>
+</html>
