@@ -1,5 +1,5 @@
 const DATA_URL = "./data/vehicles.json";
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 5_000;
 const CITY_CENTER = [49.8209, 18.2625];
 const CITY_BOUNDS = L.latLngBounds(
   [49.72, 18.05],
@@ -593,7 +593,14 @@ function drawPlannerPath() {
 }
 
 async function loadVehicles() {
-  const response = await fetch(DATA_URL, { cache: "no-store" });
+  const cacheBustedUrl = `${DATA_URL}?v=${Date.now()}`;
+  const response = await fetch(cacheBustedUrl, {
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
+  });
   if (!response.ok) {
     throw new Error(`Failed to load data: ${response.status}`);
   }
@@ -615,9 +622,11 @@ function applyPayload(payload, { isBackgroundRefresh = false } = {}) {
   const previousSelectedId = state.selectedId;
   state.vehicles = sortVehicles(payload.vehicles || []);
   state.lastGeneratedAt = payload.generatedAt || null;
+  state.lastFetchedAt = new Date().toISOString();
 
   elements.vehicleCount.textContent = String(payload.count ?? state.vehicles.length);
-  elements.lastUpdated.textContent = formatDate(payload.generatedAt);
+  elements.lastUpdated.textContent = formatDate(state.lastFetchedAt);
+  const generatedAtLabel = formatDate(payload.generatedAt);
   elements.statusBanner.textContent = isBackgroundRefresh
     ? t("autoRefreshed", { count: payload.count ?? state.vehicles.length })
     : t("showing", { count: payload.count ?? state.vehicles.length });
@@ -642,13 +651,22 @@ function applyPayload(payload, { isBackgroundRefresh = false } = {}) {
 }
 
 async function refreshVehicles({ silentIfUnchanged = false } = {}) {
-  const payload = await loadVehicles();
-
-  if (silentIfUnchanged && payload.generatedAt && payload.generatedAt === state.lastGeneratedAt) {
+  if (state.refreshInFlight) {
     return;
   }
 
-  applyPayload(payload, { isBackgroundRefresh: silentIfUnchanged });
+  state.refreshInFlight = true;
+  try {
+    const payload = await loadVehicles();
+
+    if (silentIfUnchanged && payload.generatedAt && payload.generatedAt === state.lastGeneratedAt) {
+      return;
+    }
+
+    applyPayload(payload, { isBackgroundRefresh: silentIfUnchanged });
+  } finally {
+    state.refreshInFlight = false;
+  }
 }
 
 async function start() {
@@ -671,6 +689,24 @@ async function start() {
         elements.statusBanner.textContent = t("autoRefreshFailed");
       });
     }, REFRESH_INTERVAL_MS);
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        elements.statusBanner.textContent = t("refreshNow");
+        refreshVehicles({ silentIfUnchanged: true }).catch((error) => {
+          console.error(error);
+          elements.statusBanner.textContent = t("autoRefreshFailed");
+        });
+      }
+    });
+
+    window.addEventListener("online", () => {
+      elements.statusBanner.textContent = t("refreshNow");
+      refreshVehicles({ silentIfUnchanged: true }).catch((error) => {
+        console.error(error);
+        elements.statusBanner.textContent = t("autoRefreshFailed");
+      });
+    });
   } catch (error) {
     console.error(error);
     elements.statusBanner.textContent = t("loadFailed");

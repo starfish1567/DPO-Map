@@ -85,9 +85,9 @@ GitHub Pages will publish `index.html` directly from the repo root.
 
 The workflow in `.github/workflows/refresh-data.yml` refreshes `data/vehicles.json` on a schedule and on manual trigger.
 
-The app also checks for a newer published JSON snapshot in the browser every 30 seconds.
+The app checks for a newer published JSON snapshot in the browser every 5 seconds and also refreshes when the tab becomes active again. The "Last refresh" value in the UI shows the last successful browser fetch time.
 
-If you want a different refresh cadence, update the `cron` expression in that workflow. GitHub Actions scheduled workflows are not suitable for every-second updates, so the repo is set to 5 minutes there and 30-second polling in the browser.
+If you want a different refresh cadence, update the `cron` expression in that workflow. GitHub Actions scheduled workflows are not suitable for every-second updates, so the repo is set to 5 minutes there and 5-second polling in the browser.
 
 ## Data refresh workflow
 
