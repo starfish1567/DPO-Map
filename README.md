@@ -2,11 +2,13 @@
 
 An open-source vehicle map for DPO that works on GitHub Pages.
 
-The app shows a map of published DPO vehicles, lets you click a vehicle marker or list item, and opens a friendly detail panel with route information, delay, vehicle details, accessibility flags, and a photo.
+The app shows a map of published DPO vehicles, lets you click a vehicle marker or list item, and opens a friendly detail panel with route information, delay, vehicle details, accessibility flags, and a photo. The UI supports English + Czech and includes a simple start/end stop planner that draws a path on the map.
 
 ## What this repo includes
 
 - A static frontend in plain HTML, CSS, and JavaScript
+- Bilingual interface (English / Čeština)
+- Start/end stop selector with a map path preview
 - A Python fetch script that pulls live vehicle data from the DPO dashboard API
 - A GitHub Actions workflow that refreshes `data/vehicles.json`
 - MIT licensing so the project is easy to fork and improve
@@ -116,3 +118,5 @@ If the DPO API changes later and starts requiring auth or cookies, you can updat
 ## Disclaimer
 
 This is an unofficial community project. It is not affiliated with DPO unless you explicitly make it so.
+
+Use of DPO data should follow DPO terms/policies and local law. This repository fetches data from the publicly reachable DPO dashboard API endpoint and republishes a normalized snapshot for the frontend.
