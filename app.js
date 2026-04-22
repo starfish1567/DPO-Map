@@ -1,4 +1,5 @@
 const DATA_URL = "./data/vehicles.json";
+const REFRESH_INTERVAL_MS = 30_000;
 const CITY_CENTER = [49.8209, 18.2625];
 const CITY_BOUNDS = L.latLngBounds(
   [49.72, 18.05],
@@ -17,6 +18,7 @@ const state = {
   filteredVehicles: [],
   markers: new Map(),
   selectedId: null,
+  lastGeneratedAt: null,
 };
 
 const elements = {
@@ -150,10 +152,12 @@ function buildLegend(typeCounts) {
 
 function populateTypeFilter(typeCounts) {
   const types = Object.keys(typeCounts).sort((a, b) => a.localeCompare(b));
+  const currentValue = elements.typeFilter.value;
   elements.typeFilter.innerHTML = [
     '<option value="all">All</option>',
     ...types.map((type) => `<option value="${type}">${formatVehicleType(type)}</option>`),
   ].join("");
+  elements.typeFilter.value = types.includes(currentValue) ? currentValue : "all";
 }
 
 function markerHtml(vehicle) {
@@ -329,6 +333,55 @@ async function loadVehicles() {
   return response.json();
 }
 
+function sortVehicles(vehicles) {
+  return [...vehicles].sort((a, b) => {
+    const routeA = Number(a.route ?? 0);
+    const routeB = Number(b.route ?? 0);
+    if (routeA !== routeB) {
+      return routeA - routeB;
+    }
+    return Number(a.vehicleNumber ?? 0) - Number(b.vehicleNumber ?? 0);
+  });
+}
+
+function applyPayload(payload, { isBackgroundRefresh = false } = {}) {
+  const previousSelectedId = state.selectedId;
+  state.vehicles = sortVehicles(payload.vehicles || []);
+  state.lastGeneratedAt = payload.generatedAt || null;
+
+  elements.vehicleCount.textContent = String(payload.count ?? state.vehicles.length);
+  elements.lastUpdated.textContent = formatDate(payload.generatedAt);
+  elements.statusBanner.textContent = isBackgroundRefresh
+    ? `Auto-refreshed ${payload.count ?? state.vehicles.length} vehicles from the latest published snapshot.`
+    : `Showing ${payload.count ?? state.vehicles.length} vehicles from the latest published snapshot.`;
+
+  buildLegend(payload.typeCounts || {});
+  populateTypeFilter(payload.typeCounts || {});
+  applyFilters();
+
+  if (previousSelectedId && state.filteredVehicles.some((vehicle) => vehicle.id === previousSelectedId)) {
+    selectVehicle(previousSelectedId);
+    return;
+  }
+
+  if (state.filteredVehicles.length) {
+    selectVehicle(state.filteredVehicles[0].id);
+    return;
+  }
+
+  renderDetails(null);
+}
+
+async function refreshVehicles({ silentIfUnchanged = false } = {}) {
+  const payload = await loadVehicles();
+
+  if (silentIfUnchanged && payload.generatedAt && payload.generatedAt === state.lastGeneratedAt) {
+    return;
+  }
+
+  applyPayload(payload, { isBackgroundRefresh: silentIfUnchanged });
+}
+
 async function start() {
   initMap();
 
@@ -336,27 +389,14 @@ async function start() {
   elements.typeFilter.addEventListener("change", applyFilters);
 
   try {
-    const payload = await loadVehicles();
-    state.vehicles = (payload.vehicles || []).sort((a, b) => {
-      const routeA = Number(a.route ?? 0);
-      const routeB = Number(b.route ?? 0);
-      if (routeA !== routeB) {
-        return routeA - routeB;
-      }
-      return Number(a.vehicleNumber ?? 0) - Number(b.vehicleNumber ?? 0);
-    });
-
-    elements.vehicleCount.textContent = String(payload.count ?? state.vehicles.length);
-    elements.lastUpdated.textContent = formatDate(payload.generatedAt);
-    elements.statusBanner.textContent = `Showing ${payload.count ?? state.vehicles.length} vehicles from the latest published snapshot.`;
-
-    buildLegend(payload.typeCounts || {});
-    populateTypeFilter(payload.typeCounts || {});
-    applyFilters();
-
-    if (state.filteredVehicles.length) {
-      selectVehicle(state.filteredVehicles[0].id);
-    }
+    await refreshVehicles();
+    window.setInterval(() => {
+      refreshVehicles({ silentIfUnchanged: true }).catch((error) => {
+        console.error(error);
+        elements.statusBanner.textContent =
+          "Auto-refresh could not load the latest published data. The map will keep showing the last successful snapshot.";
+      });
+    }, REFRESH_INTERVAL_MS);
   } catch (error) {
     console.error(error);
     elements.statusBanner.textContent =
