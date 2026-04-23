@@ -1,5 +1,5 @@
 const DATA_URL = "./data/vehicles.json";
-const REFRESH_INTERVAL_MS = 30_000;
+const REFRESH_INTERVAL_MS = 15_000;
 const CITY_CENTER = [49.8209, 18.2625];
 const CITY_BOUNDS = L.latLngBounds(
   [49.72, 18.05],
