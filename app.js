@@ -12,6 +12,129 @@ const TYPE_COLORS = {
   unknown: "#6b7280",
 };
 
+const TRANSLATIONS = {
+  en: {
+    unknown: "Unknown",
+    waiting: "Waiting",
+    all: "All",
+    shown: "shown",
+    noVehiclesMatch: "No vehicles match this filter yet.",
+    routePrefix: "Route",
+    from: "From",
+    to: "to",
+    finalStop: "final stop",
+    unknownDirection: "Unknown direction",
+    unknownStop: "Unknown stop",
+    unknownModel: "Unknown model",
+    lowFloor: "Low-floor access",
+    accessibilityUnknown: "Accessibility unknown",
+    airConditioned: "Air conditioned",
+    securityCameras: "Security cameras",
+    notAvailable: "Not available",
+    seated: "seated",
+    standing: "standing",
+    noPhoto: "No photo available",
+    autoRefreshed: "Auto-refreshed {count} vehicles from the latest published DPO API snapshot.",
+    showing: "Showing {count} vehicles from the latest published DPO API snapshot.",
+    autoRefreshFailed:
+      "Auto-refresh could not load the latest published data. The map will keep showing the last successful snapshot.",
+    loadFailed:
+      "The published data file could not be loaded. Run the fetch script or GitHub Action to refresh it.",
+    dataUnavailable: "Data is unavailable right now. Check the repository setup steps in the README.",
+    loadingMapData: "Loading map data...",
+    pathNeedsStops: "Please select both start and end stops.",
+    pathSameStop: "Start and end stop are the same. Select different stops.",
+    pathResult: "Path ready: {from} → {to} ({distance} km straight-line estimate).",
+    pathDrawnLabel: "Selected path",
+    searchPlaceholder: "Search route, stop, number, model...",
+    eyebrow: "Open-source GitHub Pages app",
+    languageLabel: "Language",
+    heroTitle: "DPO Live Vehicle Map",
+    heroCopy:
+      "Explore live DPO vehicles on an interactive map. Click any bus, tram, or trolleybus to see its route, timing, vehicle details, and photo.",
+    legalNote:
+      "Data source: DPO API endpoint (via the refresh script in this repository). Check DPO API terms before public/commercial use.",
+    liveVehicles: "Live vehicles",
+    lastRefresh: "Last refresh",
+    findVehicle: "Find a vehicle",
+    vehicleType: "Vehicle type",
+    tripPlanner: "Trip planner",
+    fromStop: "From",
+    toStop: "To",
+    buildPath: "Show path",
+    vehicles: "Vehicles",
+    detailsEmpty: "Select a vehicle on the map or in the list to see details and photo.",
+    vehicleNumber: "Vehicle number",
+    status: "Status",
+    lastStop: "Last stop",
+    destination: "Destination",
+    model: "Model",
+    engine: "Engine",
+    capacity: "Capacity",
+    accessibility: "Accessibility",
+  },
+  cs: {
+    unknown: "Neznámé",
+    waiting: "Čeká se",
+    all: "Vše",
+    shown: "zobrazeno",
+    noVehiclesMatch: "Tomuto filtru teď neodpovídají žádná vozidla.",
+    routePrefix: "Linka",
+    from: "Ze",
+    to: "do",
+    finalStop: "konečná",
+    unknownDirection: "Neznámý směr",
+    unknownStop: "Neznámá zastávka",
+    unknownModel: "Neznámý model",
+    lowFloor: "Nízkopodlažní přístup",
+    accessibilityUnknown: "Bez údajů o přístupnosti",
+    airConditioned: "Klimatizace",
+    securityCameras: "Bezpečnostní kamery",
+    notAvailable: "Není k dispozici",
+    seated: "sedících",
+    standing: "stojících",
+    noPhoto: "Fotografie není k dispozici",
+    autoRefreshed: "Automaticky obnoveno: {count} vozidel z posledního snapshotu DPO API.",
+    showing: "Zobrazeno {count} vozidel z posledního snapshotu DPO API.",
+    autoRefreshFailed:
+      "Automatická obnova nemohla načíst nejnovější data. Mapa ponechá poslední úspěšná data.",
+    loadFailed:
+      "Publikovaný datový soubor se nepodařilo načíst. Spusťte fetch skript nebo GitHub Action.",
+    dataUnavailable: "Data jsou teď nedostupná. Zkontrolujte postup v README.",
+    loadingMapData: "Načítám data mapy...",
+    pathNeedsStops: "Vyberte prosím výchozí i cílovou zastávku.",
+    pathSameStop: "Výchozí a cílová zastávka jsou stejné. Vyberte jiné zastávky.",
+    pathResult: "Trasa připravena: {from} → {to} (přímý odhad {distance} km).",
+    pathDrawnLabel: "Vybraná trasa",
+    searchPlaceholder: "Hledat linku, zastávku, číslo, model...",
+    eyebrow: "Open-source aplikace pro GitHub Pages",
+    languageLabel: "Jazyk",
+    heroTitle: "Živá mapa vozidel DPO",
+    heroCopy:
+      "Prohlížejte živá vozidla DPO na interaktivní mapě. Klikněte na autobus, tramvaj nebo trolejbus a uvidíte linku, zpoždění, detaily vozidla a fotku.",
+    legalNote:
+      "Zdroj dat: API DPO (přes refresh skript v tomto repozitáři). Před veřejným nebo komerčním použitím ověřte podmínky API DPO.",
+    liveVehicles: "Aktivní vozidla",
+    lastRefresh: "Poslední obnova",
+    findVehicle: "Najít vozidlo",
+    vehicleType: "Typ vozidla",
+    tripPlanner: "Plánovač trasy",
+    fromStop: "Odkud",
+    toStop: "Kam",
+    buildPath: "Zobrazit trasu",
+    vehicles: "Vozidla",
+    detailsEmpty: "Vyberte vozidlo na mapě nebo v seznamu a zobrazí se detaily i fotografie.",
+    vehicleNumber: "Číslo vozidla",
+    status: "Stav",
+    lastStop: "Poslední zastávka",
+    destination: "Cíl",
+    model: "Model",
+    engine: "Pohon",
+    capacity: "Kapacita",
+    accessibility: "Přístupnost",
+  },
+};
+
 const state = {
   map: null,
   vehicles: [],
@@ -19,6 +142,9 @@ const state = {
   markers: new Map(),
   selectedId: null,
   lastGeneratedAt: null,
+  language: "en",
+  plannerPathLine: null,
+  stopCoordinates: new Map(),
 };
 
 const elements = {
@@ -46,7 +172,55 @@ const elements = {
   detailAccess: document.querySelector("#detail-access"),
   detailImage: document.querySelector("#detail-image"),
   detailImageCaption: document.querySelector("#detail-image-caption"),
+  languageSelect: document.querySelector("#language-select"),
+  startStop: document.querySelector("#start-stop"),
+  endStop: document.querySelector("#end-stop"),
+  buildPath: document.querySelector("#build-path"),
+  plannerResult: document.querySelector("#planner-result"),
 };
+
+function t(key, params = {}) {
+  const strings = TRANSLATIONS[state.language] || TRANSLATIONS.en;
+  const fallback = TRANSLATIONS.en[key] || key;
+  let value = strings[key] || fallback;
+  Object.entries(params).forEach(([param, replacement]) => {
+    value = value.replaceAll(`{${param}}`, String(replacement));
+  });
+  return value;
+}
+
+function applyLanguageToStaticText() {
+  document.documentElement.lang = state.language;
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    const key = node.dataset.i18n;
+    node.textContent = t(key);
+  });
+
+  elements.searchInput.placeholder = t("searchPlaceholder");
+  elements.lastUpdated.textContent = state.lastGeneratedAt ? formatDate(state.lastGeneratedAt) : t("waiting");
+}
+
+function setLanguage(language) {
+  state.language = language === "cs" ? "cs" : "en";
+  elements.languageSelect.value = state.language;
+  applyLanguageToStaticText();
+  buildLegend(
+    state.filteredVehicles.reduce((counts, vehicle) => {
+      const type = vehicle.type || "unknown";
+      counts[type] = (counts[type] || 0) + 1;
+      return counts;
+    }, {}),
+  );
+  populateTypeFilter(
+    state.vehicles.reduce((counts, vehicle) => {
+      const type = vehicle.type || "unknown";
+      counts[type] = (counts[type] || 0) + 1;
+      return counts;
+    }, {}),
+  );
+  renderVehicleList(state.filteredVehicles);
+  renderDetails(state.vehicles.find((item) => item.id === state.selectedId) || null);
+}
 
 function initMap() {
   const map = L.map("map", {
@@ -66,15 +240,15 @@ function initMap() {
 
 function formatDate(isoString) {
   if (!isoString) {
-    return "Unknown";
+    return t("unknown");
   }
 
   const date = new Date(isoString);
   if (Number.isNaN(date.getTime())) {
-    return "Unknown";
+    return t("unknown");
   }
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(state.language === "cs" ? "cs-CZ" : undefined, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
@@ -82,10 +256,16 @@ function formatDate(isoString) {
 
 function formatVehicleType(type) {
   if (!type) {
-    return "Unknown";
+    return t("unknown");
   }
   if (type === "trolleybus") {
-    return "Trolleybus";
+    return state.language === "cs" ? "Trolejbus" : "Trolleybus";
+  }
+  if (state.language === "cs" && type === "bus") {
+    return "Autobus";
+  }
+  if (state.language === "cs" && type === "tram") {
+    return "Tramvaj";
   }
   return type.charAt(0).toUpperCase() + type.slice(1);
 }
@@ -94,19 +274,19 @@ function capacityLabel(vehicle) {
   const seating = vehicle.seating ?? 0;
   const standing = vehicle.standing ?? 0;
   if (!seating && !standing) {
-    return "Not available";
+    return t("notAvailable");
   }
-  return `${seating} seated / ${standing} standing`;
+  return `${seating} ${t("seated")} / ${standing} ${t("standing")}`;
 }
 
 function accessLabel(vehicle) {
   const parts = [];
-  parts.push(vehicle.isBarrierLess ? "Low-floor access" : "Accessibility unknown");
+  parts.push(vehicle.isBarrierLess ? t("lowFloor") : t("accessibilityUnknown"));
   if (vehicle.airCondition) {
-    parts.push("Air conditioned");
+    parts.push(t("airConditioned"));
   }
   if (vehicle.securityCamera) {
-    parts.push("Security cameras");
+    parts.push(t("securityCameras"));
   }
   return parts.join(" • ");
 }
@@ -154,7 +334,7 @@ function populateTypeFilter(typeCounts) {
   const types = Object.keys(typeCounts).sort((a, b) => a.localeCompare(b));
   const currentValue = elements.typeFilter.value;
   elements.typeFilter.innerHTML = [
-    '<option value="all">All</option>',
+    `<option value="all">${t("all")}</option>`,
     ...types.map((type) => `<option value="${type}">${formatVehicleType(type)}</option>`),
   ].join("");
   elements.typeFilter.value = types.includes(currentValue) ? currentValue : "all";
@@ -172,9 +352,9 @@ function markerHtml(vehicle) {
 
 function popupHtml(vehicle) {
   return `
-    <p class="popup-title">Route ${vehicle.route ?? "?"} • #${vehicle.vehicleNumber ?? "?"}</p>
-    <p class="popup-copy">${vehicle.headSign ?? "Unknown direction"}</p>
-    <p class="popup-copy">${vehicle.delayLabel ?? "Unknown"}</p>
+    <p class="popup-title">${t("routePrefix")} ${vehicle.route ?? "?"} • #${vehicle.vehicleNumber ?? "?"}</p>
+    <p class="popup-copy">${vehicle.headSign ?? t("unknownDirection")}</p>
+    <p class="popup-copy">${vehicle.delayLabel ?? t("unknown")}</p>
   `;
 }
 
@@ -211,10 +391,10 @@ function renderMarkers(vehicles) {
 }
 
 function renderVehicleList(vehicles) {
-  elements.listCount.textContent = `${vehicles.length} shown`;
+  elements.listCount.textContent = `${vehicles.length} ${t("shown")}`;
 
   if (!vehicles.length) {
-    elements.vehicleList.innerHTML = '<div class="empty-state">No vehicles match this filter yet.</div>';
+    elements.vehicleList.innerHTML = `<div class="empty-state">${t("noVehiclesMatch")}</div>`;
     return;
   }
 
@@ -226,12 +406,12 @@ function renderVehicleList(vehicles) {
         <button class="vehicle-item ${activeClass}" data-vehicle-id="${vehicle.id}">
           <div class="vehicle-row">
             <div>
-              <div class="vehicle-primary">Route ${vehicle.route ?? "?"} • #${vehicle.vehicleNumber ?? "?"}</div>
-              <div class="vehicle-secondary">${vehicle.headSign ?? "Unknown direction"}</div>
+              <div class="vehicle-primary">${t("routePrefix")} ${vehicle.route ?? "?"} • #${vehicle.vehicleNumber ?? "?"}</div>
+              <div class="vehicle-secondary">${vehicle.headSign ?? t("unknownDirection")}</div>
             </div>
-            <span class="delay-chip ${delayClass}">${vehicle.delayLabel ?? "Unknown"}</span>
+            <span class="delay-chip ${delayClass}">${vehicle.delayLabel ?? t("unknown")}</span>
           </div>
-          <div class="vehicle-secondary">${vehicle.lastStopName ?? "Unknown stop"} • ${vehicle.modelName ?? "Unknown model"}</div>
+          <div class="vehicle-secondary">${vehicle.lastStopName ?? t("unknownStop")} • ${vehicle.modelName ?? t("unknownModel")}</div>
         </button>
       `;
     })
@@ -254,22 +434,22 @@ function renderDetails(vehicle) {
   elements.detailsEmpty.classList.add("hidden");
   elements.detailsCard.classList.remove("hidden");
 
-  elements.detailRoute.textContent = `Route ${vehicle.route ?? "?"}`;
+  elements.detailRoute.textContent = `${t("routePrefix")} ${vehicle.route ?? "?"}`;
   elements.detailType.textContent = formatVehicleType(vehicle.type);
   elements.detailTitle.textContent = vehicle.headSign || `Vehicle #${vehicle.vehicleNumber ?? "?"}`;
   elements.detailSummary.textContent = [
-    vehicle.tripFrom ? `From ${vehicle.tripFrom}` : null,
-    vehicle.tripTo ? `to ${vehicle.tripTo}` : null,
-    vehicle.finalStopName ? `final stop ${vehicle.finalStopName}` : null,
+    vehicle.tripFrom ? `${t("from")} ${vehicle.tripFrom}` : null,
+    vehicle.tripTo ? `${t("to")} ${vehicle.tripTo}` : null,
+    vehicle.finalStopName ? `${t("finalStop")} ${vehicle.finalStopName}` : null,
   ]
     .filter(Boolean)
     .join(" • ");
-  elements.detailNumber.textContent = vehicle.vehicleNumber ?? "Unknown";
-  elements.detailStatus.textContent = vehicle.delayLabel ?? "Unknown";
-  elements.detailLastStop.textContent = vehicle.lastStopName ?? "Unknown";
-  elements.detailDestination.textContent = vehicle.finalStopName ?? vehicle.headSign ?? "Unknown";
-  elements.detailModel.textContent = vehicle.modelName ?? "Unknown";
-  elements.detailEngine.textContent = vehicle.engineType ?? "Unknown";
+  elements.detailNumber.textContent = vehicle.vehicleNumber ?? t("unknown");
+  elements.detailStatus.textContent = vehicle.delayLabel ?? t("unknown");
+  elements.detailLastStop.textContent = vehicle.lastStopName ?? t("unknown");
+  elements.detailDestination.textContent = vehicle.finalStopName ?? vehicle.headSign ?? t("unknown");
+  elements.detailModel.textContent = vehicle.modelName ?? t("unknown");
+  elements.detailEngine.textContent = vehicle.engineType ?? t("unknown");
   elements.detailCapacity.textContent = capacityLabel(vehicle);
   elements.detailAccess.textContent = accessLabel(vehicle);
 
@@ -280,7 +460,7 @@ function renderDetails(vehicle) {
   } else {
     elements.detailImage.removeAttribute("src");
     elements.detailImage.alt = "";
-    elements.detailImageCaption.textContent = "No photo available";
+    elements.detailImageCaption.textContent = t("noPhoto");
   }
 }
 
@@ -325,8 +505,102 @@ function applyFilters() {
   }
 }
 
+function buildStopCoordinates(vehicles) {
+  const buckets = new Map();
+
+  vehicles.forEach((vehicle) => {
+    if (typeof vehicle.lat !== "number" || typeof vehicle.lng !== "number") {
+      return;
+    }
+    [vehicle.lastStopName, vehicle.tripFrom, vehicle.tripTo, vehicle.finalStopName]
+      .filter(Boolean)
+      .forEach((stopName) => {
+        const current = buckets.get(stopName) || { latSum: 0, lngSum: 0, count: 0 };
+        current.latSum += vehicle.lat;
+        current.lngSum += vehicle.lng;
+        current.count += 1;
+        buckets.set(stopName, current);
+      });
+  });
+
+  state.stopCoordinates = new Map(
+    [...buckets.entries()]
+      .filter(([, value]) => value.count > 0)
+      .map(([name, value]) => [name, { lat: value.latSum / value.count, lng: value.lngSum / value.count }]),
+  );
+}
+
+function populateStopSelectors() {
+  const stops = [...state.stopCoordinates.keys()].sort((a, b) => a.localeCompare(b));
+  const stopOptions = stops.map((stop) => `<option value="${stop}">${stop}</option>`).join("");
+  elements.startStop.innerHTML = `<option value="">—</option>${stopOptions}`;
+  elements.endStop.innerHTML = `<option value="">—</option>${stopOptions}`;
+}
+
+function distanceKm(start, end) {
+  const r = 6371;
+  const dLat = ((end.lat - start.lat) * Math.PI) / 180;
+  const dLng = ((end.lng - start.lng) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((start.lat * Math.PI) / 180) * Math.cos((end.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return 2 * r * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function drawPlannerPath() {
+  const fromName = elements.startStop.value;
+  const toName = elements.endStop.value;
+
+  if (!fromName || !toName) {
+    elements.plannerResult.textContent = t("pathNeedsStops");
+    return;
+  }
+  if (fromName === toName) {
+    elements.plannerResult.textContent = t("pathSameStop");
+    return;
+  }
+
+  const start = state.stopCoordinates.get(fromName);
+  const end = state.stopCoordinates.get(toName);
+  if (!start || !end) {
+    elements.plannerResult.textContent = t("pathNeedsStops");
+    return;
+  }
+
+  if (state.plannerPathLine) {
+    state.plannerPathLine.remove();
+  }
+
+  state.plannerPathLine = L.polyline(
+    [
+      [start.lat, start.lng],
+      [end.lat, end.lng],
+    ],
+    {
+      color: "#93c5fd",
+      weight: 5,
+      opacity: 0.95,
+      dashArray: "10, 8",
+    },
+  )
+    .bindTooltip(t("pathDrawnLabel"))
+    .addTo(state.map);
+
+  state.map.fitBounds(state.plannerPathLine.getBounds(), { padding: [40, 40], maxZoom: 14 });
+
+  const km = distanceKm(start, end).toFixed(1);
+  elements.plannerResult.textContent = t("pathResult", { from: fromName, to: toName, distance: km });
+}
+
 async function loadVehicles() {
-  const response = await fetch(DATA_URL, { cache: "no-store" });
+  const cacheBustedUrl = `${DATA_URL}?v=${Date.now()}`;
+  const response = await fetch(cacheBustedUrl, {
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
+  });
   if (!response.ok) {
     throw new Error(`Failed to load data: ${response.status}`);
   }
@@ -348,15 +622,19 @@ function applyPayload(payload, { isBackgroundRefresh = false } = {}) {
   const previousSelectedId = state.selectedId;
   state.vehicles = sortVehicles(payload.vehicles || []);
   state.lastGeneratedAt = payload.generatedAt || null;
+  state.lastFetchedAt = new Date().toISOString();
 
   elements.vehicleCount.textContent = String(payload.count ?? state.vehicles.length);
-  elements.lastUpdated.textContent = formatDate(payload.generatedAt);
+  elements.lastUpdated.textContent = formatDate(state.lastFetchedAt);
+  const generatedAtLabel = formatDate(payload.generatedAt);
   elements.statusBanner.textContent = isBackgroundRefresh
-    ? `Auto-refreshed ${payload.count ?? state.vehicles.length} vehicles from the latest published snapshot.`
-    : `Showing ${payload.count ?? state.vehicles.length} vehicles from the latest published snapshot.`;
+    ? t("autoRefreshed", { count: payload.count ?? state.vehicles.length })
+    : t("showing", { count: payload.count ?? state.vehicles.length });
 
   buildLegend(payload.typeCounts || {});
   populateTypeFilter(payload.typeCounts || {});
+  buildStopCoordinates(state.vehicles);
+  populateStopSelectors();
   applyFilters();
 
   if (previousSelectedId && state.filteredVehicles.some((vehicle) => vehicle.id === previousSelectedId)) {
@@ -373,36 +651,66 @@ function applyPayload(payload, { isBackgroundRefresh = false } = {}) {
 }
 
 async function refreshVehicles({ silentIfUnchanged = false } = {}) {
-  const payload = await loadVehicles();
-
-  if (silentIfUnchanged && payload.generatedAt && payload.generatedAt === state.lastGeneratedAt) {
+  if (state.refreshInFlight) {
     return;
   }
 
-  applyPayload(payload, { isBackgroundRefresh: silentIfUnchanged });
+  state.refreshInFlight = true;
+  try {
+    const payload = await loadVehicles();
+
+    if (silentIfUnchanged && payload.generatedAt && payload.generatedAt === state.lastGeneratedAt) {
+      return;
+    }
+
+    applyPayload(payload, { isBackgroundRefresh: silentIfUnchanged });
+  } finally {
+    state.refreshInFlight = false;
+  }
 }
 
 async function start() {
   initMap();
+  setLanguage("en");
+  elements.statusBanner.textContent = t("loadingMapData");
 
   elements.searchInput.addEventListener("input", applyFilters);
   elements.typeFilter.addEventListener("change", applyFilters);
+  elements.languageSelect.addEventListener("change", (event) => {
+    setLanguage(event.target.value);
+  });
+  elements.buildPath.addEventListener("click", drawPlannerPath);
 
   try {
     await refreshVehicles();
     window.setInterval(() => {
       refreshVehicles({ silentIfUnchanged: true }).catch((error) => {
         console.error(error);
-        elements.statusBanner.textContent =
-          "Auto-refresh could not load the latest published data. The map will keep showing the last successful snapshot.";
+        elements.statusBanner.textContent = t("autoRefreshFailed");
       });
     }, REFRESH_INTERVAL_MS);
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        elements.statusBanner.textContent = t("refreshNow");
+        refreshVehicles({ silentIfUnchanged: true }).catch((error) => {
+          console.error(error);
+          elements.statusBanner.textContent = t("autoRefreshFailed");
+        });
+      }
+    });
+
+    window.addEventListener("online", () => {
+      elements.statusBanner.textContent = t("refreshNow");
+      refreshVehicles({ silentIfUnchanged: true }).catch((error) => {
+        console.error(error);
+        elements.statusBanner.textContent = t("autoRefreshFailed");
+      });
+    });
   } catch (error) {
     console.error(error);
-    elements.statusBanner.textContent =
-      "The published data file could not be loaded. Run the fetch script or GitHub Action to refresh it.";
-    elements.vehicleList.innerHTML =
-      '<div class="empty-state">Data is unavailable right now. Check the repository setup steps in the README.</div>';
+    elements.statusBanner.textContent = t("loadFailed");
+    elements.vehicleList.innerHTML = `<div class="empty-state">${t("dataUnavailable")}</div>`;
   }
 }
 

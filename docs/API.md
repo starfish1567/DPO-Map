@@ -57,3 +57,8 @@ Each published vehicle contains the fields below:
 ## If the upstream API changes
 
 Update `scripts/fetch_dpo_data.py` in one place, regenerate `data/vehicles.json`, and the frontend should keep working as long as the normalized shape stays stable.
+
+
+## Compliance note
+
+This project is community-maintained and not legal advice. Before production or commercial use, verify DPO API terms, attribution requirements, and any usage limitations (rate limits, redistribution, branding, etc.).
